@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>CosmoLearn — Interactive Science Hub</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- KaTeX -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css"
+  >
+
+  <script
+    defer
+    src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"
+  ></script>
+
+  <!-- Markdown parser -->
+  <script
+    defer
+    src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"
+  ></script>
+
+  <!-- Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  >
+
+  <!-- Project CSS -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+
+<body>
+
+  <!-- ===== HEADER ===== -->
+
+  <header class="site-header">
+
+    <div class="header-inner">
+
+      <div class="brand">
+        <span class="brand-mark">✦</span>
+        <span class="brand-name">CosmoLearn</span>
+      </div>
+
+      <nav class="header-actions">
+
+        <button
+          class="theme-toggle"
+          id="themeToggle"
+          aria-label="Toggle theme"
+        >
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+      </nav>
+
+    </div>
+
+  </header>
+
+
+  <!-- ===== HERO ===== -->
+
+  <section class="hero">
+
+    <p class="hero-eyebrow">
+      Field Log — Vol. 01
+    </p>
+
+    <h1 class="hero-title">
+      Every field of science<br>
+      has a way in.
+    </h1>
+
+    <p class="hero-sub">
+      Pick a discipline. Get a live-generated deep dive,
+      the core equation, and a quiz to test what stuck.
+    </p>
+
+  </section>
+
+
+  <!-- ===== TOPIC GRID ===== -->
+
+  <section
+    class="topic-section"
+    aria-label="Choose a topic"
+  >
+
+    <div
+      class="topic-grid"
+      id="topicGrid"
+    >
+
+      <button
+        class="topic-card"
+        data-topic="astrophysics"
+      >
+
+        <span class="topic-catalog">
+          CAT.01
+        </span>
+
+        <i class="fa-solid fa-meteor topic-icon"></i>
+
+        <span class="topic-name">
+          Astrophysics
+        </span>
+
+        <span class="topic-desc">
+          Stars, gravity, and the shape of spacetime
+        </span>
+
+      </button>
+
+
+      <button
+        class="topic-card"
+        data-topic="quantum"
+      >
+
+        <span class="topic-catalog">
+          CAT.02
+        </span>
+
+        <i class="fa-solid fa-atom topic-icon"></i>
+
+        <span class="topic-name">
+          Quantum Mechanics
+        </span>
+
+        <span class="topic-desc">
+          The rules that govern the very small
+        </span>
+
+      </button>
+
+
+      <button
+        class="topic-card"
+        data-topic="biology"
+      >
+
+        <span class="topic-catalog">
+          CAT.03
+        </span>
+
+        <i class="fa-solid fa-dna topic-icon"></i>
+
+        <span class="topic-name">
+          Molecular Biology
+        </span>
+
+        <span class="topic-desc">
+          How life encodes and copies itself
+        </span>
+
+      </button>
+
+
+      <button
+        class="topic-card"
+        data-topic="energy"
+      >
+
+        <span class="topic-catalog">
+          CAT.04
+        </span>
+
+        <i class="fa-solid fa-solar-panel topic-icon"></i>
+
+        <span class="topic-name">
+          Renewable Energy
+        </span>
+
+        <span class="topic-desc">
+          Capturing power without burning the past
+        </span>
+
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ===== CONTENT VIEWPORT ===== -->
+
+  <main
+    class="content-viewport"
+    id="contentViewport"
+  >
+
+    <div class="empty-state">
+
+      <i class="fa-solid fa-compass empty-icon"></i>
+
+      <p>
+        Select a topic above to generate its field report.
+      </p>
+
+    </div>
+
+
+    <!-- Loading skeleton -->
+
+    <div
+      class="skeleton-state hidden"
+      id="skeletonState"
+    >
+
+      <div class="skeleton-line skeleton-title"></div>
+
+      <div class="skeleton-line"></div>
+
+      <div class="skeleton-line"></div>
+
+      <div class="skeleton-line short"></div>
+
+    </div>
+
+
+    <!-- Generated content -->
+
+    <article
+      class="topic-article hidden"
+      id="topicArticle"
+    >
+
+      <header class="article-header">
+
+        <span
+          class="article-catalog"
+          id="articleCatalog"
+        >
+          CAT.01
+        </span>
+
+        <h2 id="articleTitle">
+          Topic Title
+        </h2>
+
+        <p
+          class="article-summary"
+          id="articleSummary"
+        ></p>
+
+      </header>
+
+
+      <!-- Tabs -->
+
+      <nav
+        class="article-tabs"
+        id="articleTabs"
+      >
+
+        <button
+          class="tab-btn active"
+          data-tab="mechanics"
+        >
+          Core Mechanics
+        </button>
+
+        <button
+          class="tab-btn"
+          data-tab="equation"
+        >
+          Equation
+        </button>
+
+        <button
+          class="tab-btn"
+          data-tab="impact"
+        >
+          Real-World Impact
+        </button>
+
+        <button
+          class="tab-btn"
+          data-tab="quiz"
+        >
+          Quiz
+        </button>
+
+      </nav>
+
+
+      <!-- Core Mechanics -->
+
+      <section
+        class="tab-panel"
+        id="panel-mechanics"
+        data-panel="mechanics"
+      >
+
+        <ul id="mechanicsList"></ul>
+
+      </section>
+
+
+      <!-- Equation -->
+
+      <section
+        class="tab-panel hidden"
+        id="panel-equation"
+        data-panel="equation"
+      >
+
+        <div class="formula-card">
+
+          <div
+            class="formula-display"
+            id="latexTarget"
+          ></div>
+
+          <p
+            class="formula-caption"
+            id="formulaExplanation"
+          ></p>
+
+        </div>
+
+      </section>
+
+
+      <!-- Real World Impact -->
+
+      <section
+        class="tab-panel hidden"
+        id="panel-impact"
+        data-panel="impact"
+      >
+
+        <p id="realWorldText"></p>
+
+      </section>
+
+
+      <!-- Quiz -->
+
+      <section
+        class="tab-panel hidden"
+        id="panel-quiz"
+        data-panel="quiz"
+      >
+
+        <div id="quizContainer"></div>
+
+      </section>
+
+    </article>
+
+
+    <!-- Error toast -->
+
+    <div
+      class="toast hidden"
+      id="errorToast"
+    >
+
+      <i class="fa-solid fa-triangle-exclamation"></i>
+
+      <span id="toastMessage">
+        Something went wrong.
+      </span>
+
+    </div>
+
+  </main>
+
+
+  <!-- ===== CHAT DRAWER ===== -->
+
+  <button
+    class="chat-fab"
+    id="chatFab"
+    aria-label="Ask the Scientist"
+  >
+
+    <i class="fa-solid fa-message"></i>
+
+  </button>
+
+
+  <aside
+    class="chat-drawer"
+    id="chatDrawer"
+  >
+
+    <div class="chat-header">
+
+      <span>
+        <i class="fa-solid fa-user-astronaut"></i>
+        Ask the Scientist
+      </span>
+
+      <button
+        id="chatClose"
+        aria-label="Close chat"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+    </div>
+
+
+    <div
+      class="chat-messages"
+      id="chatMessages"
+    >
+
+      <div class="chat-msg chat-msg--bot">
+        Pick a topic first, then ask me anything about it.
+      </div>
+
+    </div>
+
+
+    <form
+      class="chat-input-row"
+      id="chatForm"
+    >
+
+      <input
+        type="text"
+        id="chatInput"
+        placeholder="Ask a question..."
+        autocomplete="off"
+      >
+
+      <button
+        type="submit"
+        aria-label="Send"
+      >
+
+        <i class="fa-solid fa-paper-plane"></i>
+
+      </button>
+
+    </form>
+
+  </aside>
+
+
+  <!-- ===== JAVASCRIPT ===== -->
+
+  <script src="js/config.js"></script>
+  <script src="js/cache.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+
+</html>

@@ -2,9 +2,14 @@
 // Frontend talks ONLY to our backend.
 // API key is NEVER stored in this file.
 
+
+// ======================================================
+// GENERATE SCIENCE TOPIC
+// ======================================================
+
 async function fetchScienceTopic(topicName) {
 
-  const response = await fetch("/api/topic", {
+  const response = await fetch("/api/gemini", {
     method: "POST",
 
     headers: {
@@ -12,6 +17,7 @@ async function fetchScienceTopic(topicName) {
     },
 
     body: JSON.stringify({
+      type: "topic",
       topic: topicName
     })
   });
@@ -27,7 +33,10 @@ async function fetchScienceTopic(topicName) {
       throw new Error("QUOTA_EXCEEDED");
     }
 
-    if (response.status === 400 || response.status === 403) {
+    if (
+      response.status === 400 ||
+      response.status === 403
+    ) {
       throw new Error("BAD_API_KEY");
     }
 
@@ -43,7 +52,12 @@ async function fetchScienceTopic(topicName) {
 
 
   if (data.error) {
-    console.error("Backend error:", data.error);
+
+    console.error(
+      "Backend topic error:",
+      data.error
+    );
+
     throw new Error("GEMINI_ERROR");
   }
 
@@ -53,9 +67,9 @@ async function fetchScienceTopic(topicName) {
 
 
 
-// ==========================================
+// ======================================================
 // ASK THE SCIENTIST
-// ==========================================
+// ======================================================
 
 async function askScientist(
   topicContext,
@@ -63,7 +77,7 @@ async function askScientist(
   question
 ) {
 
-  const response = await fetch("/api/chat", {
+  const response = await fetch("/api/gemini", {
 
     method: "POST",
 
@@ -73,13 +87,19 @@ async function askScientist(
 
     body: JSON.stringify({
 
-      topicTitle: topicContext.title,
+      type: "chat",
 
-      topicSummary: topicContext.summary,
+      topicTitle:
+        topicContext.title,
 
-      question: question,
+      topicSummary:
+        topicContext.summary,
 
-      conversationHistory: conversationHistory || []
+      question:
+        question,
+
+      conversationHistory:
+        conversationHistory || []
 
     })
 
@@ -88,9 +108,14 @@ async function askScientist(
 
   if (!response.ok) {
 
-    const data = await response.json().catch(() => ({}));
+    const data =
+      await response.json()
+        .catch(() => ({}));
 
-    console.error("Chat API error:", data);
+    console.error(
+      "Chat API error:",
+      data
+    );
 
 
     if (response.status === 429) {
@@ -115,15 +140,23 @@ async function askScientist(
   }
 
 
-  const data = await response.json();
+  const data =
+    await response.json();
 
 
   if (data.error) {
-    console.error("Backend chat error:", data.error);
+
+    console.error(
+      "Backend chat error:",
+      data.error
+    );
+
     throw new Error("NETWORK_ERROR");
   }
 
 
-  return data.answer ||
-    "Sorry, I couldn't generate a response.";
+  return (
+    data.answer ||
+    "Sorry, I couldn't generate a response."
+  );
 }

@@ -8,12 +8,13 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Website serve karo
-app.use(express.static(path.join(__dirname)));
+// Serve website
+app.use(express.static(__dirname));
 
-// ================================
-// Gemini helper
-// ================================
+app.use("/public", express.static(path.join(__dirname, "public")));
+// ==================================================
+// GEMINI HELPER
+// ==================================================
 
 async function askGemini(contents, generationConfig = {}) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -25,8 +26,10 @@ async function askGemini(contents, generationConfig = {}) {
   const model = "gemini-3.6-flash";
 
   const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/` +
-    `${model}:generateContent?key=${apiKey}`;
+    "https://generativelanguage.googleapis.com/v1beta/models/" +
+    model +
+    ":generateContent?key=" +
+    apiKey;
 
   const response = await fetch(url, {
     method: "POST",
@@ -34,8 +37,8 @@ async function askGemini(contents, generationConfig = {}) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      contents,
-      generationConfig
+      contents: contents,
+      generationConfig: generationConfig
     })
   });
 
@@ -43,23 +46,25 @@ async function askGemini(contents, generationConfig = {}) {
 
   if (!response.ok) {
     console.error("Gemini error:", data);
-    throw new Error(data.error?.message || "Gemini API error");
+
+    throw new Error(
+      data.error?.message || "Gemini API error"
+    );
   }
 
-  return (
-    data.candidates?.[0]?.content?.parts?.[0]?.text ||
-    "No response generated."
-  );
+  const text =
+    data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  return text || "No response generated.";
 }
 
-
-// ================================
-// Topic API
-// ================================
+// ==================================================
+// TOPIC API
+// ==================================================
 
 app.post("/api/topic", async (req, res) => {
   try {
-    const { topic } = req.body;
+    const topic = req.body.topic;
 
     if (!topic) {
       return res.status(400).json({
@@ -70,7 +75,8 @@ app.post("/api/topic", async (req, res) => {
     const prompt = `
 You are an expert scientific educator.
 
-Create an interactive science module about:
+Create an interactive science learning module about:
+
 "${topic}"
 
 Return ONLY valid JSON.
@@ -81,14 +87,23 @@ Use exactly this structure:
   "title": "string",
   "category": "string",
   "summary": "string",
-  "keyMechanics": ["string", "string", "string"],
+  "keyMechanics": [
+    "string",
+    "string",
+    "string"
+  ],
   "latexFormula": "string",
   "formulaExplanation": "string",
   "realWorldApplication": "string",
   "quiz": [
     {
       "question": "string",
-      "options": ["string", "string", "string", "string"],
+      "options": [
+        "string",
+        "string",
+        "string",
+        "string"
+      ],
       "correctIndex": 0,
       "explanation": "string"
     }
@@ -96,19 +111,26 @@ Use exactly this structure:
 }
 
 Rules:
-- summary should be 2 sentences.
-- keyMechanics should contain exactly 3 items.
-- quiz should contain exactly 3 questions.
+
+- summary must contain exactly 2 sentences.
+- keyMechanics must contain exactly 3 items.
+- quiz must contain exactly 3 questions.
 - every quiz question must have exactly 4 options.
 - correctIndex must be 0, 1, 2, or 3.
-- Make the science accurate and understandable.
+- Make the science accurate.
+- Make the explanation understandable for students.
+- latexFormula must contain a valid LaTeX formula.
 `;
 
     const result = await askGemini(
       [
         {
           role: "user",
-          parts: [{ text: prompt }]
+          parts: [
+            {
+              text: prompt
+            }
+          ]
         }
       ],
       {
@@ -122,28 +144,30 @@ Rules:
     try {
       parsed = JSON.parse(result);
     } catch (error) {
-      console.error("Gemini returned invalid JSON:", result);
+      console.error(
+        "Invalid JSON from Gemini:",
+        result
+      );
 
       return res.status(500).json({
         error: "Gemini returned invalid JSON."
       });
     }
 
-    res.json(parsed);
+    return res.json(parsed);
 
   } catch (error) {
     console.error("Topic API error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: error.message
     });
   }
 });
 
-
-// ================================
-// Chat API
-// ================================
+// ==================================================
+// CHAT API
+// ==================================================
 
 app.post("/api/chat", async (req, res) => {
   try {
@@ -151,7 +175,7 @@ app.post("/api/chat", async (req, res) => {
       topicTitle,
       topicSummary,
       question,
-      conversationHistory = []
+      conversationHistory
     } = req.body;
 
     if (!question) {
@@ -160,58 +184,118 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    const prompt = `
-You are a friendly scientist.
+    const history = Array.isArray(conversationHistory)
+      ? conversationHistory
+      : [];
 
-The user is currently learning about:
-"${topicTitle}"
+    const systemPrompt = `
+You are a friendly female scientist helping a student.
+
+The student is currently learning about:
+
+${topicTitle || "science"}
 
 Topic summary:
-"${topicSummary}"
 
-Answer the user's question clearly.
+${topicSummary || ""}
 
-Keep the answer concise:
-2-4 sentences.
+Answer the student's question clearly and accurately.
 
-User question:
-"${question}"
+Keep the answer concise, around 2 to 4 sentences.
+
+Use simple language where possible.
 `;
 
+    // Start with the instruction as a USER message.
+    // Then add only valid alternating history.
     const contents = [
       {
         role: "user",
-        parts: [{ text: prompt }]
-      },
-      ...conversationHistory
+        parts: [
+          {
+            text: systemPrompt
+          }
+        ]
+      }
     ];
 
-    const result = await askGemini(contents, {
-      temperature: 0.5
+    let expectedRole = "model";
+
+    for (const item of history) {
+      if (!item) {
+        continue;
+      }
+
+      if (
+        item.role !== "user" &&
+        item.role !== "model"
+      ) {
+        continue;
+      }
+
+      if (
+        !Array.isArray(item.parts) ||
+        item.parts.length === 0
+      ) {
+        continue;
+      }
+
+      // Only accept the role we expect next.
+      if (item.role !== expectedRole) {
+        continue;
+      }
+
+      contents.push({
+        role: item.role,
+        parts: item.parts
+      });
+
+      expectedRole =
+        expectedRole === "user"
+          ? "model"
+          : "user";
+    }
+
+    // VERY IMPORTANT:
+    // The request must always finish with USER.
+    contents.push({
+      role: "user",
+      parts: [
+        {
+          text: question
+        }
+      ]
     });
 
-    res.json({
+    const result = await askGemini(
+      contents,
+      {
+        temperature: 0.5
+      }
+    );
+
+    return res.json({
       answer: result
     });
 
   } catch (error) {
     console.error("Chat API error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: error.message
     });
   }
 });
 
-
-// ================================
-// Server
-// ================================
+// ==================================================
+// START SERVER
+// ==================================================
 
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(
-      `🚀 CosmoLearn server running at http://localhost:${PORT}`
+      "CosmoLearn server running at http://localhost:" +
+      PORT
     );
   });
 }

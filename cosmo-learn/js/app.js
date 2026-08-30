@@ -121,7 +121,7 @@ async function handleTopicClick(card) {
   // Check cache
   // ----------------------------------------------------
 
-  const cached = Cache.get(topicKey);
+  const cached = CosmoCache.get(topicKey);
 
   if (cached) {
 
@@ -151,7 +151,7 @@ async function handleTopicClick(card) {
 
 
     // Save to cache
-    Cache.set(topicKey, data);
+    CosmoCache.set(topicKey, data);
 
 
     // Render content

@@ -725,7 +725,9 @@ a:focus-visible {
 .scientist-avatar img {
   width: 190px !important;
   height: 275px !important;
-  object-fit: fill !important;
+  object-fit: contain !important;
+  object-position: center top !important;
+
   object-position: center top !important;
   display: block !important;
 }

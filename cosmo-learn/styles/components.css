@@ -725,13 +725,12 @@ a:focus-visible {
 .scientist-avatar img {
   width: 190px !important;
   height: 275px !important;
-  object-fit: contain !important;
-  object-position: center top !important;
-
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
   object-position: center top !important;
   display: block !important;
 }
-
 /* Chat messages ki position stable rakho */
 .chat-messages {
   flex: 1 1 auto !important;

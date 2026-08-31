@@ -10,7 +10,7 @@
 // ======================================================
 
 const SCIENTIST_CLOSED = "/public/scientist-closed.png";
-const SCIENTIST_OPEN = "/scientist-open.png";
+const SCIENTIST_OPEN = "/public/scientist-open.png";
 
 // ======================================================
 // CHAT STATE
@@ -58,7 +58,7 @@ function setChatContext(topicData) {
 // ======================================================
 
 function getScientistImage() {
-  return document.getElementById("scientistAvatarImage");
+  return document.getElementById("scientistClosedImage");
 }
 
 // ======================================================

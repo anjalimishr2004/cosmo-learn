@@ -9,7 +9,7 @@
 // SCIENTIST IMAGE PATHS
 // ======================================================
 
-const SCIENTIST_CLOSED = "/scientist-closed.png";
+const SCIENTIST_CLOSED = "/public/scientist-closed.png";
 const SCIENTIST_OPEN = "/scientist-open.png";
 
 // ======================================================

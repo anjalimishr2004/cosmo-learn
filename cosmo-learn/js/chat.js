@@ -381,12 +381,12 @@ function startScientistAnimation() {
     if (stopped) return;
 
     // Small natural pauses
-    if (Math.random() < 0.15) {
+    if (Math.random() < 0.25) {
       setScientistClosed();
 
       timeoutId = setTimeout(
         animateMouth,
-        180 + Math.random() * 200
+        120 + Math.random() * 140
       );
 
       return;
@@ -402,9 +402,9 @@ function startScientistAnimation() {
 
       timeoutId = setTimeout(
         animateMouth,
-        70 + Math.random() * 100
+        90 + Math.random() * 100
       );
-    }, 50 + Math.random() * 70);
+    }, 70 + Math.random() * 80);
 
     window.cosmoLearnChatState.mouthAnimationTimer = {
       cancel: () => {
@@ -757,3 +757,6 @@ window.testScientistLips = function () {
 
   speakText(testText);
 };
+
+
+

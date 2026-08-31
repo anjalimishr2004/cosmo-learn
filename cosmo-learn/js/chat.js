@@ -32,7 +32,6 @@ window.cosmoLearnChatState =
 
 function setChatContext(topicData) {
   if (!topicData) {
-    console.warn("setChatContext: topicData is missing.");
     return;
   }
 
@@ -48,8 +47,7 @@ function setChatContext(topicData) {
 
     const welcome = document.createElement("div");
     welcome.className = "chat-msg chat-msg--bot";
-    welcome.textContent =
-      `Ask me anything about "${title}".`;
+    welcome.textContent = `Ask me anything about "${title}".`;
 
     messages.appendChild(welcome);
   }
@@ -94,6 +92,7 @@ function resetScientistImage() {
   stopMouthAnimation();
 
   avatar.onerror = null;
+
   makeScientistVisible();
 
   avatar.src = SCIENTIST_CLOSED;
@@ -111,6 +110,7 @@ function setScientistClosed() {
   }
 
   makeScientistVisible();
+
   avatar.onerror = null;
 
   if (!avatar.src.endsWith(SCIENTIST_CLOSED)) {
@@ -132,9 +132,7 @@ function setScientistOpen() {
   makeScientistVisible();
 
   avatar.onerror = function () {
-    console.warn(
-      "Scientist open image failed. Returning to closed image."
-    );
+    console.warn("Scientist open image failed.");
 
     avatar.onerror = null;
     avatar.src = SCIENTIST_CLOSED;
@@ -166,7 +164,6 @@ function preloadScientistImages() {
 
   closedImage.src = SCIENTIST_CLOSED;
 
-
   const openImage = new Image();
 
   openImage.onload = () => {
@@ -177,7 +174,7 @@ function preloadScientistImages() {
   };
 
   openImage.onerror = () => {
-    console.warn(
+    console.error(
       "Scientist open image FAILED:",
       SCIENTIST_OPEN
     );
@@ -209,7 +206,6 @@ function initChat() {
 
   window.cosmoLearnChatState.initialized = true;
 
-  // Initial scientist image
   resetScientistImage();
   preloadScientistImages();
 
@@ -223,22 +219,11 @@ function initChat() {
 
       stopSpeaking();
       resetScientistImage();
-      makeScientistVisible();
 
       drawer.classList.add("open");
 
       requestAnimationFrame(() => {
-        const avatar = getScientistImage();
-
-        if (avatar) {
-          avatar.style.display = "block";
-          avatar.style.visibility = "visible";
-          avatar.style.opacity = "1";
-
-          if (!avatar.getAttribute("src")) {
-            avatar.src = SCIENTIST_CLOSED;
-          }
-        }
+        makeScientistVisible();
       });
 
       if (input) {
@@ -258,7 +243,6 @@ function initChat() {
       console.log("Closing Ask the Scientist...");
 
       stopSpeaking();
-      stopMouthAnimation();
 
       drawer.classList.remove("open");
 
@@ -283,7 +267,6 @@ function initChat() {
       const topicContext =
         window.cosmoLearnChatState.activeTopicContext;
 
-      // No topic selected
       if (!topicContext) {
         appendChatMessage(
           "bot",
@@ -293,27 +276,22 @@ function initChat() {
         return;
       }
 
-      // Stop previous speech
       stopSpeaking();
 
-      // Show user message
       appendChatMessage("user", question);
 
       input.value = "";
 
-      // Thinking message
       const typingId =
         appendChatMessage("bot", "Thinking...");
 
       try {
-        // Ask AI
         const answer = await askScientist(
           topicContext,
           window.cosmoLearnChatState.chatHistory,
           question
         );
 
-        // Validate answer
         if (
           !answer ||
           typeof answer !== "string" ||
@@ -322,7 +300,6 @@ function initChat() {
           throw new Error("EMPTY_AI_RESPONSE");
         }
 
-        // Save user message
         window.cosmoLearnChatState.chatHistory.push({
           role: "user",
           parts: [
@@ -332,7 +309,6 @@ function initChat() {
           ]
         });
 
-        // Save AI message
         window.cosmoLearnChatState.chatHistory.push({
           role: "model",
           parts: [
@@ -342,21 +318,13 @@ function initChat() {
           ]
         });
 
-        // Show answer
-        updateChatMessage(
-          typingId,
-          answer
-        );
+        updateChatMessage(typingId, answer);
 
-        // Speak answer
         if (
           window.cosmoLearnChatState.speechEnabled
         ) {
           speakText(answer);
-        } else {
-          stopScientistAnimation();
         }
-
       } catch (err) {
         console.error("Chat error:", err);
 
@@ -365,44 +333,27 @@ function initChat() {
         let message =
           "Couldn't reach the AI right now. Please try again.";
 
-        if (
-          err &&
-          err.message === "EMPTY_AI_RESPONSE"
-        ) {
+        if (err?.message === "EMPTY_AI_RESPONSE") {
           message =
             "The AI returned an empty response. Please try again.";
         }
 
-        if (
-          err &&
-          err.message === "QUOTA_EXCEEDED"
-        ) {
+        if (err?.message === "QUOTA_EXCEEDED") {
           message =
             "AI usage limit reached. Please try again later.";
         }
 
-        if (
-          err &&
-          err.message === "BAD_API_KEY"
-        ) {
+        if (err?.message === "BAD_API_KEY") {
           message =
             "There is a problem with the Gemini API key.";
         }
 
-        if (
-          err &&
-          err.message === "GEMINI_MODEL_NOT_FOUND"
-        ) {
+        if (err?.message === "GEMINI_MODEL_NOT_FOUND") {
           message =
             "The Gemini model is unavailable. Please check the server configuration.";
         }
 
-        if (typingId) {
-          updateChatMessage(
-            typingId,
-            message
-          );
-        }
+        updateChatMessage(typingId, message);
       }
     });
   }
@@ -412,7 +363,7 @@ function initChat() {
 }
 
 // ======================================================
-// NATURAL LIP ANIMATION
+// SCIENTIST MOUTH ANIMATION
 // ======================================================
 
 function startScientistAnimation() {
@@ -424,16 +375,17 @@ function startScientistAnimation() {
 
   stopMouthAnimation();
   makeScientistVisible();
-  setScientistClosed();
 
   let stopped = false;
+  let timeoutId = null;
 
   function animateMouth() {
     if (stopped) {
       return;
     }
 
-    const open = Math.random() > 0.35;
+    // Natural speaking pattern
+    const open = Math.random() > 0.45;
 
     if (open) {
       setScientistOpen();
@@ -441,26 +393,26 @@ function startScientistAnimation() {
       setScientistClosed();
     }
 
-    const delay = open
-      ? 70 + Math.random() * 100
-      : 90 + Math.random() * 150;
+    // Faster, smoother mouth movement
+    const delay = 90 + Math.random() * 90;
 
-    const timeoutId = setTimeout(
-      animateMouth,
-      delay
-    );
+    timeoutId = setTimeout(animateMouth, delay);
 
     window.cosmoLearnChatState.mouthAnimationTimer = {
       cancel: () => {
         stopped = true;
-        clearTimeout(timeoutId);
+
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+
+        setScientistClosed();
       }
     };
   }
 
   animateMouth();
 }
-
 // ======================================================
 // STOP SCIENTIST ANIMATION
 // ======================================================
@@ -515,8 +467,7 @@ function addSpeechControl(drawer) {
     return;
   }
 
-  const button =
-    document.createElement("button");
+  const button = document.createElement("button");
 
   button.id = "speechToggle";
   button.type = "button";
@@ -560,10 +511,10 @@ function addSpeechControl(drawer) {
     }
   });
 
-  const position =
-    window.getComputedStyle(drawer).position;
-
-  if (position === "static") {
+  if (
+    window.getComputedStyle(drawer).position ===
+    "static"
+  ) {
     drawer.style.position = "fixed";
   }
 
@@ -576,10 +527,6 @@ function addSpeechControl(drawer) {
 
 function speakText(text) {
   if (!("speechSynthesis" in window)) {
-    console.warn(
-      "Speech synthesis is not supported."
-    );
-
     stopScientistAnimation();
     return;
   }
@@ -592,7 +539,6 @@ function speakText(text) {
     cleanTextForSpeech(text);
 
   if (!cleanText) {
-    stopScientistAnimation();
     return;
   }
 
@@ -635,13 +581,11 @@ function speakText(text) {
 
   utterance.onstart = () => {
     if (
-      window.cosmoLearnChatState.currentSpeech !==
+      window.cosmoLearnChatState.currentSpeech ===
       utterance
     ) {
-      return;
+      startScientistAnimation();
     }
-
-    startScientistAnimation();
   };
 
   utterance.onend = () => {
@@ -676,16 +620,6 @@ function speakText(text) {
   window.speechSynthesis.speak(
     utterance
   );
-
-  setTimeout(() => {
-    if (
-      window.cosmoLearnChatState.currentSpeech ===
-        utterance &&
-      window.speechSynthesis.speaking
-    ) {
-      startScientistAnimation();
-    }
-  }, 150);
 }
 
 // ======================================================

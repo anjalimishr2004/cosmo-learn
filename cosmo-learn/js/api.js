@@ -1,13 +1,12 @@
 ﻿"use strict";
 
 async function fetchScienceTopic(topicName) {
-  const response = await fetch("/api/gemini", {
+  const response = await fetch("/api/topic", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      type: "topic",
       topic: topicName
     })
   });
@@ -25,10 +24,6 @@ async function fetchScienceTopic(topicName) {
       throw new Error("BAD_API_KEY");
     }
 
-    if (response.status === 404) {
-      throw new Error("GEMINI_MODEL_NOT_FOUND");
-    }
-
     throw new Error(data.error || "GEMINI_ERROR");
   }
 
@@ -41,13 +36,12 @@ async function askScientist(
   conversationHistory,
   question
 ) {
-  const response = await fetch("/api/gemini", {
+  const response = await fetch("/api/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      type: "chat",
       topicTitle: topicContext?.title || "Science",
       topicSummary: topicContext?.summary || "",
       question: question,
@@ -70,11 +64,7 @@ async function askScientist(
       throw new Error("BAD_API_KEY");
     }
 
-    if (response.status === 404) {
-      throw new Error("GEMINI_MODEL_NOT_FOUND");
-    }
-
-    throw new Error(data.error || "NETWORK_ERROR");
+    throw new Error(data.error || "GEMINI_ERROR");
   }
 
   if (data.error) {

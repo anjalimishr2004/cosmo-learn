@@ -8,11 +8,11 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Serve website
+// Serve website files
 app.use(express.static(__dirname));
 
-app.use("/public", express.static(path.join(__dirname, "public")));
-// ==================================================
+
+app.use(express.static(path.join(__dirname, "public")));// ==========================
 // GEMINI HELPER
 // ==================================================
 
@@ -267,12 +267,7 @@ Use simple language where possible.
       ]
     });
 
-    const result = await askGemini(
-      contents,
-      {
-        temperature: 0.5
-      }
-    );
+   const result = await askGemini(contents);
 
     return res.json({
       answer: result

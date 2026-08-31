@@ -746,3 +746,11 @@ if ("speechSynthesis" in window) {
 // app.js calls initChat().
 // ======================================================
 ````
+// ===== TEMPORARY LIPS TEST =====
+
+window.testScientistLips = function () {
+  const testText =
+    "Hello! I am your science assistant. This is a test of my voice and mouth movement.";
+
+  speakText(testText);
+};

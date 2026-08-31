@@ -23,7 +23,7 @@ async function askGemini(contents, generationConfig = {}) {
     throw new Error("GEMINI_API_KEY is missing in .env");
   }
 
-  const model = "gemini-3.6-flash";
+  const model = "gemini-3.5-flash-lite";
 
   const url =
     "https://generativelanguage.googleapis.com/v1beta/models/" +
@@ -296,3 +296,4 @@ if (require.main === module) {
 }
 
 module.exports = app;
+

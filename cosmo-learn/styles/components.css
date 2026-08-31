@@ -705,27 +705,29 @@ a:focus-visible {
 
 /* ===== SCIENTIST IMAGE — STABLE RENDERING ===== */
 
+/* ===== SCIENTIST IMAGE — RESTORE SIZE ===== */
+
 .scientist-avatar {
   width: 190px !important;
-  height: 280px !important;
+  height: 275px !important;
+  flex: 0 0 275px !important;
   margin: 8px auto 4px !important;
   display: flex !important;
   align-items: flex-start !important;
   justify-content: center !important;
   overflow: hidden !important;
   flex-shrink: 0 !important;
-  position: relative !important;
   background: transparent !important;
 }
 
 .scientist-avatar img {
   width: 190px !important;
-  height: 280px !important;
+  height: 275px !important;
+  max-width: none !important;
+  max-height: none !important;
   object-fit: contain !important;
   object-position: center top !important;
   display: block !important;
   margin: 0 !important;
   padding: 0 !important;
-  position: relative !important;
-  transform: none !important;
 }

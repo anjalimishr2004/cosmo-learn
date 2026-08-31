@@ -1,24 +1,11 @@
-// ======================================================
-// COSMOLEARN — MAIN APPLICATION
-// ======================================================
-
 "use strict";
 
-// ======================================================
-// INITIALIZE APP
-// ======================================================
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
   initTheme();
   initTabs();
   initChat();
   initTopicCards();
 });
-
-
-// ======================================================
-// THEME TOGGLE
-// ======================================================
 
 function initTheme() {
   const toggle = document.getElementById("themeToggle");
@@ -26,7 +13,7 @@ function initTheme() {
 
   if (!toggle) return;
 
-  toggle.addEventListener("click", () => {
+  toggle.addEventListener("click", function () {
     const current = root.getAttribute("data-theme");
     const next = current === "dark" ? "light" : "dark";
 
@@ -39,37 +26,26 @@ function initTheme() {
   });
 }
 
-
-// ======================================================
-// TABS
-// ======================================================
-
 function initTabs() {
   const buttons = document.querySelectorAll(".tab-btn");
   const panels = document.querySelectorAll(".tab-panel");
 
-  if (!buttons.length) return;
-
-  buttons.forEach((button) => {
-    button.addEventListener("click", () => {
+  buttons.forEach(function (button) {
+    button.addEventListener("click", function () {
       const tabName = button.dataset.tab;
 
-      // Remove active from all buttons
-      buttons.forEach((btn) => {
+      buttons.forEach(function (btn) {
         btn.classList.remove("active");
       });
 
-      // Hide all panels
-      panels.forEach((panel) => {
+      panels.forEach(function (panel) {
         panel.classList.add("hidden");
       });
 
-      // Activate clicked button
       button.classList.add("active");
 
-      // Show selected panel
       const selectedPanel = document.getElementById(
-        `panel-${tabName}`
+        "panel-" + tabName
       );
 
       if (selectedPanel) {
@@ -79,50 +55,32 @@ function initTabs() {
   });
 }
 
-
-// ======================================================
-// TOPIC CARDS
-// ======================================================
-
 function initTopicCards() {
   const cards = document.querySelectorAll(".topic-card");
 
-  cards.forEach((card) => {
-    card.addEventListener("click", () => {
+  cards.forEach(function (card) {
+    card.addEventListener("click", function () {
       handleTopicClick(card);
     });
   });
 }
 
-
-// ======================================================
-// HANDLE TOPIC CLICK
-// ======================================================
-
 async function handleTopicClick(card) {
   const topicKey = card.dataset.topic;
+  const topicNameElement = card.querySelector(".topic-name");
 
-  const topicName =
-    card.querySelector(".topic-name")?.textContent?.trim();
-
-  if (!topicName) {
+  if (!topicNameElement) {
     console.error("Topic name not found.");
     return;
   }
 
-  // ----------------------------------------------------
-  // Active card
-  // ----------------------------------------------------
+  const topicName = topicNameElement.textContent.trim();
 
-  document.querySelectorAll(".topic-card").forEach((c) => {
+  document.querySelectorAll(".topic-card").forEach(function (c) {
     c.classList.remove("active");
   });
 
   card.classList.add("active");
-
-  // ----------------------------------------------------
-  // Check cache
-  // ----------------------------------------------------
 
   if (
     typeof CosmoCache !== "undefined" &&
@@ -137,10 +95,6 @@ async function handleTopicClick(card) {
     }
   }
 
-  // ----------------------------------------------------
-  // Loading
-  // ----------------------------------------------------
-
   if (typeof showSkeleton === "function") {
     showSkeleton();
   }
@@ -148,12 +102,10 @@ async function handleTopicClick(card) {
   try {
     console.log("Generating topic:", topicName);
 
-    // Backend API call
     const data = await fetchScienceTopic(topicName);
 
     console.log("Topic received:", data);
 
-    // Save to cache
     if (
       typeof CosmoCache !== "undefined" &&
       typeof CosmoCache.set === "function"
@@ -161,26 +113,19 @@ async function handleTopicClick(card) {
       CosmoCache.set(topicKey, data);
     }
 
-    // Render content
     renderTopicArticle(topicKey, data);
-
-    // Set chat context
     setChatContext(data);
 
   } catch (error) {
     console.error("Topic generation failed:", error);
-
     handleFetchError(error, topicKey);
   }
 }
 
-
-// ======================================================
-// ERROR HANDLING
-// ======================================================
-
 function handleFetchError(error, topicKey) {
-  const errorCode = error?.message || "UNKNOWN_ERROR";
+  const errorCode = error && error.message
+    ? error.message
+    : "UNKNOWN_ERROR";
 
   console.error("Error code:", errorCode);
 
@@ -215,16 +160,8 @@ function handleFetchError(error, topicKey) {
     showError(message);
   }
 
-  // ----------------------------------------------------
-  // Fallback content
-  // ----------------------------------------------------
-
   if (typeof FALLBACK_TOPIC !== "undefined") {
-    renderTopicArticle(
-      topicKey,
-      FALLBACK_TOPIC
-    );
-
+    renderTopicArticle(topicKey, FALLBACK_TOPIC);
     setChatContext(FALLBACK_TOPIC);
   }
 }

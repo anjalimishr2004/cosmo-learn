@@ -58,7 +58,7 @@ function setChatContext(topicData) {
 // ======================================================
 
 function getScientistImage() {
-  return document.getElementById("scientistClosedImage");
+  return document.getElementById("scientistAvatarImage");
 }
 
 // ======================================================

@@ -709,27 +709,30 @@ a:focus-visible {
 
 /* ===== SCIENTIST IMAGE — FINAL SIZE ===== */
 
+/* ===== SCIENTIST RECTANGLE + STABLE CHAT LAYOUT ===== */
+
 .scientist-avatar {
   width: 190px !important;
   height: 275px !important;
   flex: 0 0 275px !important;
   margin: 8px auto 4px !important;
+  overflow: hidden !important;
   display: flex !important;
   align-items: flex-start !important;
   justify-content: center !important;
-  overflow: hidden !important;
-  flex-shrink: 0 !important;
-  background: transparent !important;
 }
 
 .scientist-avatar img {
   width: 190px !important;
   height: 275px !important;
-  max-width: none !important;
-  max-height: none !important;
-  object-fit: contain !important;
+  object-fit: fill !important;
   object-position: center top !important;
   display: block !important;
-  margin: 0 !important;
-  padding: 0 !important;
+}
+
+/* Chat messages ki position stable rakho */
+.chat-messages {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
 }

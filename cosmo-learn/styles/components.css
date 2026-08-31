@@ -703,38 +703,29 @@ a:focus-visible {
   flex-shrink: 0 !important;
 }
 
+/* ===== SCIENTIST IMAGE — STABLE RENDERING ===== */
+
+.scientist-avatar {
+  width: 190px !important;
+  height: 280px !important;
+  margin: 8px auto 4px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  background: transparent !important;
+}
+
 .scientist-avatar img {
   width: 190px !important;
   height: 280px !important;
-  object-fit: cover !important;
+  object-fit: contain !important;
   object-position: center top !important;
   display: block !important;
   margin: 0 !important;
-}
-/* ===== VOICE BUTTON POSITION FIX ===== */
-
-.chat-header {
+  padding: 0 !important;
   position: relative !important;
-  z-index: 5 !important;
-}
-
-.chat-header .voice-btn,
-.chat-header #voiceBtn,
-.chat-header button[id*="voice"] {
-  position: static !important;
   transform: none !important;
 }
-
-/* Voice control ko heading ke saath properly align rakho */
-.chat-header span {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.chat-header {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-}
-

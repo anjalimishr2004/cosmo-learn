@@ -369,9 +369,7 @@ function initChat() {
 function startScientistAnimation() {
   const avatar = getScientistImage();
 
-  if (!avatar) {
-    return;
-  }
+  if (!avatar) return;
 
   stopMouthAnimation();
   makeScientistVisible();
@@ -380,23 +378,33 @@ function startScientistAnimation() {
   let timeoutId = null;
 
   function animateMouth() {
-    if (stopped) {
+    if (stopped) return;
+
+    // Small natural pauses
+    if (Math.random() < 0.15) {
+      setScientistClosed();
+
+      timeoutId = setTimeout(
+        animateMouth,
+        180 + Math.random() * 200
+      );
+
       return;
     }
 
-    // Natural speaking pattern
-    const open = Math.random() > 0.45;
+    // Open briefly
+    setScientistOpen();
 
-    if (open) {
-      setScientistOpen();
-    } else {
+    timeoutId = setTimeout(() => {
+      if (stopped) return;
+
       setScientistClosed();
-    }
 
-    // Faster, smoother mouth movement
-    const delay = 90 + Math.random() * 90;
-
-    timeoutId = setTimeout(animateMouth, delay);
+      timeoutId = setTimeout(
+        animateMouth,
+        70 + Math.random() * 100
+      );
+    }, 50 + Math.random() * 70);
 
     window.cosmoLearnChatState.mouthAnimationTimer = {
       cancel: () => {

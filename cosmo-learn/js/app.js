@@ -1,6 +1,12 @@
+// ======================================================
+// COSMOLEARN — MAIN APPLICATION
+// ======================================================
 
-// js/app.js
-// Main application logic
+"use strict";
+
+// ======================================================
+// INITIALIZE APP
+// ======================================================
 
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
@@ -8,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initChat();
   initTopicCards();
 });
+
 
 // ======================================================
 // THEME TOGGLE
@@ -32,6 +39,7 @@ function initTheme() {
   });
 }
 
+
 // ======================================================
 // TABS
 // ======================================================
@@ -39,6 +47,8 @@ function initTheme() {
 function initTabs() {
   const buttons = document.querySelectorAll(".tab-btn");
   const panels = document.querySelectorAll(".tab-panel");
+
+  if (!buttons.length) return;
 
   buttons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -69,6 +79,7 @@ function initTabs() {
   });
 }
 
+
 // ======================================================
 // TOPIC CARDS
 // ======================================================
@@ -83,6 +94,7 @@ function initTopicCards() {
   });
 }
 
+
 // ======================================================
 // HANDLE TOPIC CLICK
 // ======================================================
@@ -90,10 +102,8 @@ function initTopicCards() {
 async function handleTopicClick(card) {
   const topicKey = card.dataset.topic;
 
-  const topicName = card
-    .querySelector(".topic-name")
-    ?.textContent
-    ?.trim();
+  const topicName =
+    card.querySelector(".topic-name")?.textContent?.trim();
 
   if (!topicName) {
     console.error("Topic name not found.");
@@ -114,19 +124,26 @@ async function handleTopicClick(card) {
   // Check cache
   // ----------------------------------------------------
 
-  const cached = CosmoCache.get(topicKey);
+  if (
+    typeof CosmoCache !== "undefined" &&
+    typeof CosmoCache.get === "function"
+  ) {
+    const cached = CosmoCache.get(topicKey);
 
-  if (cached) {
-    renderTopicArticle(topicKey, cached);
-    setChatContext(cached);
-    return;
+    if (cached) {
+      renderTopicArticle(topicKey, cached);
+      setChatContext(cached);
+      return;
+    }
   }
 
   // ----------------------------------------------------
   // Loading
   // ----------------------------------------------------
 
-  showSkeleton();
+  if (typeof showSkeleton === "function") {
+    showSkeleton();
+  }
 
   try {
     console.log("Generating topic:", topicName);
@@ -137,19 +154,26 @@ async function handleTopicClick(card) {
     console.log("Topic received:", data);
 
     // Save to cache
-    CosmoCache.set(topicKey, data);
+    if (
+      typeof CosmoCache !== "undefined" &&
+      typeof CosmoCache.set === "function"
+    ) {
+      CosmoCache.set(topicKey, data);
+    }
 
     // Render content
     renderTopicArticle(topicKey, data);
 
     // Set chat context
     setChatContext(data);
+
   } catch (error) {
     console.error("Topic generation failed:", error);
 
     handleFetchError(error, topicKey);
   }
 }
+
 
 // ======================================================
 // ERROR HANDLING
@@ -178,21 +202,29 @@ function handleFetchError(error, topicKey) {
 
     EMPTY_RESPONSE:
       "The AI returned an empty response. Please try again.",
+
+    EMPTY_AI_RESPONSE:
+      "The AI returned an empty response. Please try again."
   };
 
   const message =
     messages[errorCode] ||
     "Something went wrong. Showing sample content instead.";
 
-  showError(message);
+  if (typeof showError === "function") {
+    showError(message);
+  }
 
   // ----------------------------------------------------
   // Fallback content
   // ----------------------------------------------------
 
   if (typeof FALLBACK_TOPIC !== "undefined") {
-    renderTopicArticle(topicKey, FALLBACK_TOPIC);
+    renderTopicArticle(
+      topicKey,
+      FALLBACK_TOPIC
+    );
+
     setChatContext(FALLBACK_TOPIC);
   }
 }
-

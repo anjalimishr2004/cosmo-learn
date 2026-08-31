@@ -1,7 +1,7 @@
-﻿"use strict";
+"use strict";
 
 async function fetchScienceTopic(topicName) {
-  const response = await fetch("/api/gemini", {
+  const response = await fetch("/api/topic", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -37,7 +37,7 @@ async function askScientist(
   conversationHistory,
   question
 ) {
-  const response = await fetch("/api/gemini", {
+  const response = await fetch("/api/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -80,3 +80,5 @@ async function askScientist(
 // IMPORTANT: expose functions globally
 window.fetchScienceTopic = fetchScienceTopic;
 window.askScientist = askScientist;
+
+

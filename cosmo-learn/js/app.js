@@ -1,12 +1,18 @@
 // js/app.js
 // Main application logic
 
+```js
+// js/app.js
+// Main application logic
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initTabs();
   initChat();
   initTopicCards();
 });
+```
+
 
 
 // ======================================================

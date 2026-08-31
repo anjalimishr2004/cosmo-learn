@@ -1,28 +1,35 @@
 
-// js/chat.js
-// Ask the Scientist
-// AI chat + female voice + natural scientist lip animation
+// ======================================================
+// COSMOLEARN — ASK THE SCIENTIST CHAT
+// ======================================================
 
 "use strict";
 
+// ======================================================
+// SCIENTIST IMAGE PATHS
+// IMPORTANT: Your working Vercel URL uses /public/
+// ======================================================
 
-// ==================================================
+const SCIENTIST_CLOSED = "/scientist-closed.png";
+const SCIENTIST_OPEN = "/scientist-open.png";
+
+// ======================================================
 // CHAT STATE
-// ==================================================
+// ======================================================
 
 window.cosmoLearnChatState =
   window.cosmoLearnChatState || {
-    activeTopicContext: null,
     chatHistory: [],
     speechEnabled: true,
     currentSpeech: null,
-    mouthAnimationTimer: null
+    mouthAnimationTimer: null,
+    activeTopicContext: null,
+    initialized: false
   };
 
-
-// ==================================================
+// ======================================================
 // SET CHAT CONTEXT
-// ==================================================
+// ======================================================
 
 function setChatContext(topicData) {
   if (!topicData) {
@@ -51,12 +58,157 @@ function setChatContext(topicData) {
   }
 }
 
+// ======================================================
+// GET SCIENTIST IMAGE
+// ======================================================
 
-// ==================================================
+function getScientistImage() {
+  return document.getElementById("scientistAvatarImage");
+}
+
+// ======================================================
+// MAKE IMAGE VISIBLE
+// ======================================================
+
+function makeScientistVisible() {
+  const avatar = getScientistImage();
+
+  if (!avatar) {
+    console.warn("scientistAvatarImage not found.");
+    return;
+  }
+
+  avatar.style.display = "block";
+  avatar.style.visibility = "visible";
+  avatar.style.opacity = "1";
+}
+
+// ======================================================
+// RESET SCIENTIST IMAGE
+// ======================================================
+
+function resetScientistImage() {
+  const avatar = getScientistImage();
+
+  if (!avatar) {
+    console.warn("scientistAvatarImage not found.");
+    return;
+  }
+
+  stopMouthAnimation();
+
+  avatar.onerror = null;
+
+  makeScientistVisible();
+
+  // IMPORTANT:
+  // Do NOT use /scientist-closed.png
+  // Your working file is /public/scientist-closed.png
+
+  avatar.src = SCIENTIST_CLOSED;
+}
+
+// ======================================================
+// CLOSED MOUTH
+// ======================================================
+
+function setScientistClosed() {
+  const avatar = getScientistImage();
+
+  if (!avatar) {
+    return;
+  }
+
+  makeScientistVisible();
+
+  avatar.onerror = null;
+
+  if (avatar.src !== window.location.origin + SCIENTIST_CLOSED) {
+    avatar.src = SCIENTIST_CLOSED;
+  }
+}
+
+// ======================================================
+// OPEN MOUTH
+// ======================================================
+
+function setScientistOpen() {
+  const avatar = getScientistImage();
+
+  if (!avatar) {
+    return;
+  }
+
+  makeScientistVisible();
+
+  avatar.onerror = function () {
+    console.warn(
+      "Scientist open image failed. Returning to closed image."
+    );
+
+    avatar.onerror = null;
+    avatar.src = SCIENTIST_CLOSED;
+  };
+
+  avatar.src = SCIENTIST_OPEN;
+}
+
+// ======================================================
+// PRELOAD SCIENTIST IMAGES
+// ======================================================
+
+function preloadScientistImages() {
+  const closedImage = new Image();
+
+  closedImage.onload = () => {
+    console.log(
+      "Scientist closed image loaded:",
+      SCIENTIST_CLOSED
+    );
+  };
+
+  closedImage.onerror = () => {
+    console.error(
+      "Scientist closed image FAILED:",
+      SCIENTIST_CLOSED
+    );
+  };
+
+  closedImage.src = SCIENTIST_CLOSED;
+
+
+  const openImage = new Image();
+
+  openImage.onload = () => {
+    console.log(
+      "Scientist open image loaded:",
+      SCIENTIST_OPEN
+    );
+  };
+
+  openImage.onerror = () => {
+    console.warn(
+      "Scientist open image FAILED:",
+      SCIENTIST_OPEN
+    );
+  };
+
+  openImage.src = SCIENTIST_OPEN;
+}
+
+// ======================================================
 // INIT CHAT
-// ==================================================
+// ======================================================
 
 function initChat() {
+
+  // IMPORTANT:
+  // Prevent duplicate initialization.
+  if (window.cosmoLearnChatState.initialized) {
+    console.log("Chat already initialized.");
+    return;
+  }
+
   const navChat =
     document.getElementById("chatNav");
 
@@ -79,19 +231,63 @@ function initChat() {
   }
 
 
+  // Mark initialized
+  window.cosmoLearnChatState.initialized = true;
+
+
+  // ==================================================
+  // INITIAL IMAGE
+  // ==================================================
+
+  resetScientistImage();
+
+  preloadScientistImages();
+
+
   // ==================================================
   // OPEN CHAT
   // ==================================================
 
   if (navChat) {
+
     navChat.addEventListener("click", () => {
 
+      console.log("Opening Ask the Scientist...");
+
+      // Stop any old speech/animation
+      stopSpeaking();
+
+      // Reset image BEFORE opening
+      resetScientistImage();
+
+      // Force image visibility
+      makeScientistVisible();
+
+      // Open drawer
       drawer.classList.add("open");
 
-      if (input) {
-        setTimeout(() => input.focus(), 100);
-      }
+      // Force image visibility again after drawer opens
+      requestAnimationFrame(() => {
+        const avatar = getScientistImage();
 
+        if (avatar) {
+          avatar.style.display = "block";
+          avatar.style.visibility = "visible";
+          avatar.style.opacity = "1";
+
+          // If image somehow lost its source
+          if (!avatar.getAttribute("src")) {
+            avatar.src = SCIENTIST_CLOSED;
+          }
+        }
+      });
+
+      // Focus input
+      if (input) {
+        setTimeout(() => {
+          input.focus();
+        }, 150);
+      }
     });
   }
 
@@ -101,12 +297,22 @@ function initChat() {
   // ==================================================
 
   if (closeBtn) {
+
     closeBtn.addEventListener("click", () => {
 
-      drawer.classList.remove("open");
+      console.log("Closing Ask the Scientist...");
 
+      // Stop voice
       stopSpeaking();
 
+      // Stop animation
+      stopMouthAnimation();
+
+      // Close drawer
+      drawer.classList.remove("open");
+
+      // Reset image
+      resetScientistImage();
     });
   }
 
@@ -121,10 +327,7 @@ function initChat() {
 
       e.preventDefault();
 
-
-      const question =
-        input.value.trim();
-
+      const question = input.value.trim();
 
       if (!question) {
         return;
@@ -132,7 +335,7 @@ function initChat() {
 
 
       // ==================================================
-      // GET CURRENT TOPIC
+      // CURRENT TOPIC
       // ==================================================
 
       const topicContext =
@@ -140,7 +343,7 @@ function initChat() {
 
 
       // ==================================================
-      // NO TOPIC SELECTED
+      // NO TOPIC
       // ==================================================
 
       if (!topicContext) {
@@ -155,14 +358,14 @@ function initChat() {
 
 
       // ==================================================
-      // STOP ANY PREVIOUS SPEECH
+      // STOP PREVIOUS SPEECH
       // ==================================================
 
       stopSpeaking();
 
 
       // ==================================================
-      // SHOW USER QUESTION
+      // SHOW USER MESSAGE
       // ==================================================
 
       appendChatMessage(
@@ -174,7 +377,7 @@ function initChat() {
 
 
       // ==================================================
-      // THINKING MESSAGE
+      // THINKING
       // ==================================================
 
       const typingId =
@@ -184,15 +387,10 @@ function initChat() {
         );
 
 
-      // IMPORTANT:
-      // Do NOT start lip animation here.
-      // Lips will start only when actual speech begins.
-
-
       try {
 
         // ==================================================
-        // ASK SCIENTIST
+        // ASK AI
         // ==================================================
 
         const answer =
@@ -212,11 +410,7 @@ function initChat() {
           typeof answer !== "string" ||
           !answer.trim()
         ) {
-
-          throw new Error(
-            "EMPTY_AI_RESPONSE"
-          );
-
+          throw new Error("EMPTY_AI_RESPONSE");
         }
 
 
@@ -225,15 +419,12 @@ function initChat() {
         // ==================================================
 
         window.cosmoLearnChatState.chatHistory.push({
-
           role: "user",
-
           parts: [
             {
               text: question
             }
           ]
-
         });
 
 
@@ -242,15 +433,12 @@ function initChat() {
         // ==================================================
 
         window.cosmoLearnChatState.chatHistory.push({
-
           role: "model",
-
           parts: [
             {
               text: answer
             }
           ]
-
         });
 
 
@@ -265,7 +453,7 @@ function initChat() {
 
 
         // ==================================================
-        // SPEAK ANSWER
+        // SPEAK
         // ==================================================
 
         if (
@@ -280,17 +468,11 @@ function initChat() {
 
         }
 
-
       } catch (err) {
 
-        console.error(
-          "Chat error:",
-          err
-        );
-
+        console.error("Chat error:", err);
 
         stopSpeaking();
-
 
         let message =
           "Couldn't reach the AI right now. Please try again.";
@@ -298,281 +480,196 @@ function initChat() {
 
         if (
           err &&
-          err.message ===
-            "EMPTY_AI_RESPONSE"
+          err.message === "EMPTY_AI_RESPONSE"
         ) {
-
           message =
             "The AI returned an empty response. Please try again.";
-
         }
 
 
         if (
           err &&
-          err.message ===
-            "QUOTA_EXCEEDED"
+          err.message === "QUOTA_EXCEEDED"
         ) {
-
           message =
             "AI usage limit reached. Please try again later.";
-
         }
 
 
         if (
           err &&
-          err.message ===
-            "BAD_API_KEY"
+          err.message === "BAD_API_KEY"
         ) {
-
           message =
             "There is a problem with the Gemini API key.";
-
         }
 
 
         if (
           err &&
-          err.message ===
-            "GEMINI_MODEL_NOT_FOUND"
+          err.message === "GEMINI_MODEL_NOT_FOUND"
         ) {
-
           message =
-            "The Gemini model is unavailable. Please check server.js.";
-
+            "The Gemini model is unavailable. Please check the server configuration.";
         }
 
 
         if (typingId) {
-
           updateChatMessage(
             typingId,
             message
           );
-
         }
-
       }
-
     });
-
   }
 
 
   // ==================================================
-  // VOICE BUTTON
+  // VOICE CONTROL
   // ==================================================
 
   addSpeechControl(drawer);
-
 }
 
-
-// ==================================================
-// NATURAL SCIENTIST LIP ANIMATION
-// ==================================================
+// ======================================================
+// NATURAL LIP ANIMATION
+// ======================================================
 
 function startScientistAnimation() {
 
-  const avatarImage =
-    document.getElementById(
-      "scientistAvatarImage"
-    );
+  const avatar = getScientistImage();
 
-
-  if (!avatarImage) {
-
-    console.warn(
-      "scientistAvatarImage not found."
-    );
-
+  if (!avatar) {
     return;
   }
 
-
-  // Stop previous animation
   stopMouthAnimation();
 
+  makeScientistVisible();
 
-  // Always start with closed mouth
-  avatarImage.src =
-    "public/scientist-closed.png";
-
+  setScientistClosed();
 
   let stopped = false;
 
-
-  // ==================================================
-  // NATURAL MOUTH LOOP
-  // ==================================================
-
-  const animateMouth = () => {
+  function animateMouth() {
 
     if (stopped) {
       return;
     }
 
-
-    // Random mouth state
-    const shouldOpen =
-      Math.random() > 0.38;
+    const open =
+      Math.random() > 0.35;
 
 
-    avatarImage.src =
-      shouldOpen
-        ? "public/scientist-open.png"
-        : "public/scientist-closed.png";
-
-
-    // Different timing for open / closed
-    // prevents robotic rhythm
-
-    const nextDelay =
-      shouldOpen
-        ? 80 + Math.random() * 120
-        : 110 + Math.random() * 190;
-
-
-    window.cosmoLearnChatState.mouthAnimationTimer =
-      setTimeout(
-        animateMouth,
-        nextDelay
-      );
-
-  };
-
-
-  // Store cancel function
-  window.cosmoLearnChatState.mouthAnimationTimer = {
-
-    cancel: () => {
-      stopped = true;
+    if (open) {
+      setScientistOpen();
+    } else {
+      setScientistClosed();
     }
 
-  };
+
+    const delay =
+      open
+        ? 70 + Math.random() * 100
+        : 90 + Math.random() * 150;
 
 
-  // Start loop
+    const timeoutId =
+      setTimeout(
+        animateMouth,
+        delay
+      );
+
+
+    window.cosmoLearnChatState.mouthAnimationTimer = {
+      cancel: () => {
+        stopped = true;
+        clearTimeout(timeoutId);
+      }
+    };
+  }
+
+
   animateMouth();
-
 }
 
-
-// ==================================================
+// ======================================================
 // STOP SCIENTIST ANIMATION
-// ==================================================
+// ======================================================
 
 function stopScientistAnimation() {
 
-  const avatarImage =
-    document.getElementById(
-      "scientistAvatarImage"
-    );
-
-
   stopMouthAnimation();
 
-
-  if (avatarImage) {
-
-    avatarImage.src =
-      "public/scientist-closed.png";
-
-  }
-
+  setScientistClosed();
 }
 
-
-// ==================================================
-// MOUTH ANIMATION COMPATIBILITY
-// ==================================================
+// ======================================================
+// START MOUTH ANIMATION
+// ======================================================
 
 function startMouthAnimation() {
-
   startScientistAnimation();
-
 }
 
-
-// ==================================================
+// ======================================================
 // STOP MOUTH ANIMATION
-// ==================================================
+// ======================================================
 
 function stopMouthAnimation() {
 
   const timer =
-    window.cosmoLearnChatState
-      .mouthAnimationTimer;
-
+    window.cosmoLearnChatState.mouthAnimationTimer;
 
   if (!timer) {
     return;
   }
 
 
-  // New timeout-based animation
   if (
     typeof timer === "object" &&
     typeof timer.cancel === "function"
   ) {
-
     timer.cancel();
-
   }
 
 
-  // Old timer compatibility
-  if (
-    typeof timer === "number"
-  ) {
-
+  if (typeof timer === "number") {
     clearTimeout(timer);
     clearInterval(timer);
-
   }
 
 
-  window.cosmoLearnChatState
-    .mouthAnimationTimer = null;
-
+  window.cosmoLearnChatState.mouthAnimationTimer =
+    null;
 }
 
-
-// ==================================================
+// ======================================================
 // SPEECH CONTROL
-// ==================================================
+// ======================================================
 
 function addSpeechControl(drawer) {
 
   if (
-    document.getElementById(
-      "speechToggle"
-    )
+    document.getElementById("speechToggle")
   ) {
-
     return;
-
   }
 
 
   const button =
-    document.createElement(
-      "button"
-    );
+    document.createElement("button");
 
 
   button.id =
     "speechToggle";
 
-
   button.type =
     "button";
 
-
   button.title =
     "Toggle voice";
-
 
   button.setAttribute(
     "aria-label",
@@ -584,104 +681,63 @@ function addSpeechControl(drawer) {
     '<i class="fa-solid fa-volume-high"></i> Voice On';
 
 
-  // ==================================================
-  // VOICE BUTTON POSITION
-  // ==================================================
-
   button.style.cssText = `
-
     position: absolute;
-
     top: 68px;
-
     right: 14px;
-
     z-index: 50;
-
     border: 1px solid var(--border);
-
     background: var(--bg);
-
     color: var(--text);
-
     border-radius: 8px;
-
     padding: 7px 10px;
-
     cursor: pointer;
-
     font-size: 12px;
-
   `;
 
 
-  // ==================================================
-  // VOICE TOGGLE
-  // ==================================================
+  button.addEventListener("click", () => {
 
-  button.addEventListener(
-    "click",
-    () => {
-
-      window.cosmoLearnChatState.speechEnabled =
-        !window.cosmoLearnChatState.speechEnabled;
+    window.cosmoLearnChatState.speechEnabled =
+      !window.cosmoLearnChatState.speechEnabled;
 
 
-      if (
-        !window.cosmoLearnChatState.speechEnabled
-      ) {
+    if (
+      !window.cosmoLearnChatState.speechEnabled
+    ) {
 
-        stopSpeaking();
+      stopSpeaking();
 
+      button.innerHTML =
+        '<i class="fa-solid fa-volume-xmark"></i> Voice Off';
 
-        button.innerHTML =
-          '<i class="fa-solid fa-volume-xmark"></i> Voice Off';
+    } else {
 
-      } else {
-
-        button.innerHTML =
-          '<i class="fa-solid fa-volume-high"></i> Voice On';
-
-      }
-
+      button.innerHTML =
+        '<i class="fa-solid fa-volume-high"></i> Voice On';
     }
-  );
+  });
 
-
-  // ==================================================
-  // MAKE DRAWER POSITIONED
-  // ==================================================
 
   const position =
-    window.getComputedStyle(
-      drawer
-    ).position;
+    window.getComputedStyle(drawer).position;
 
 
-  if (
-    position === "static"
-  ) {
-
-    drawer.style.position =
-      "fixed";
-
+  if (position === "static") {
+    drawer.style.position = "fixed";
   }
 
 
   drawer.appendChild(button);
-
 }
 
-
-// ==================================================
+// ======================================================
 // TEXT TO SPEECH
-// ==================================================
+// ======================================================
 
 function speakText(text) {
 
-  if (
-    !("speechSynthesis" in window)
-  ) {
+  if (!("speechSynthesis" in window)) {
 
     console.warn(
       "Speech synthesis is not supported."
@@ -690,12 +746,12 @@ function speakText(text) {
     stopScientistAnimation();
 
     return;
-
   }
 
 
-  // Stop any existing speech
-  stopSpeaking();
+  window.speechSynthesis.cancel();
+
+  stopScientistAnimation();
 
 
   const cleanText =
@@ -707,7 +763,6 @@ function speakText(text) {
     stopScientistAnimation();
 
     return;
-
   }
 
 
@@ -717,25 +772,11 @@ function speakText(text) {
     );
 
 
-  utterance.lang =
-    "en-US";
+  utterance.lang = "en-US";
+  utterance.rate = 0.95;
+  utterance.pitch = 1.05;
+  utterance.volume = 1;
 
-
-  utterance.rate =
-    0.95;
-
-
-  utterance.pitch =
-    1.08;
-
-
-  utterance.volume =
-    1;
-
-
-  // ==================================================
-  // SELECT FEMALE VOICE
-  // ==================================================
 
   const voices =
     window.speechSynthesis.getVoices();
@@ -744,39 +785,29 @@ function speakText(text) {
   const preferredVoice =
     voices.find(
       (voice) =>
-        voice.lang === "en-US" &&
-        /female|Samantha|Zira|Google US English|Natural/i.test(
+        /en-US/i.test(voice.lang) &&
+        /Samantha|Zira|Google US English|Natural|Jenny|Aria|female/i.test(
           voice.name
         )
     ) ||
     voices.find(
       (voice) =>
-        voice.lang === "en-US"
+        /en-US/i.test(voice.lang)
+    ) ||
+    voices.find(
+      (voice) =>
+        /^en/i.test(voice.lang)
     );
 
 
   if (preferredVoice) {
-
-    utterance.voice =
-      preferredVoice;
-
+    utterance.voice = preferredVoice;
   }
 
-
-  // ==================================================
-  // SAVE CURRENT SPEECH
-  // ==================================================
 
   window.cosmoLearnChatState.currentSpeech =
     utterance;
 
-
-  // ==================================================
-  // SPEECH START
-  // ==================================================
-  // VERY IMPORTANT:
-  // Lip movement starts ONLY after browser
-  // confirms that speech has actually started.
 
   utterance.onstart = () => {
 
@@ -784,43 +815,12 @@ function speakText(text) {
       window.cosmoLearnChatState.currentSpeech !==
       utterance
     ) {
-
       return;
-
     }
-
 
     startScientistAnimation();
-
   };
 
-
-  // ==================================================
-  // SPEECH BOUNDARY
-  // ==================================================
-  // Briefly close mouth between words/phrases
-  // to make movement less robotic.
-
-  utterance.onboundary = () => {
-
-    if (
-      window.cosmoLearnChatState.currentSpeech !==
-      utterance
-    ) {
-
-      return;
-
-    }
-
-    // Animation continues naturally.
-    // No hard reset here because that looks robotic.
-
-  };
-
-
-  // ==================================================
-  // SPEECH FINISHED
-  // ==================================================
 
   utterance.onend = () => {
 
@@ -831,20 +831,19 @@ function speakText(text) {
 
       window.cosmoLearnChatState.currentSpeech =
         null;
-
     }
 
-
     stopScientistAnimation();
-
   };
 
 
-  // ==================================================
-  // SPEECH ERROR
-  // ==================================================
+  utterance.onerror = (event) => {
 
-  utterance.onerror = () => {
+    console.warn(
+      "Speech synthesis error:",
+      event
+    );
+
 
     if (
       window.cosmoLearnChatState.currentSpeech ===
@@ -853,38 +852,40 @@ function speakText(text) {
 
       window.cosmoLearnChatState.currentSpeech =
         null;
-
     }
 
 
     stopScientistAnimation();
-
   };
 
-
-  // ==================================================
-  // SPEAK
-  // ==================================================
 
   window.speechSynthesis.speak(
     utterance
   );
 
+
+  setTimeout(() => {
+
+    if (
+      window.cosmoLearnChatState.currentSpeech ===
+        utterance &&
+      window.speechSynthesis.speaking
+    ) {
+
+      startScientistAnimation();
+    }
+
+  }, 150);
 }
 
-
-// ==================================================
+// ======================================================
 // STOP SPEAKING
-// ==================================================
+// ======================================================
 
 function stopSpeaking() {
 
-  if (
-    "speechSynthesis" in window
-  ) {
-
+  if ("speechSynthesis" in window) {
     window.speechSynthesis.cancel();
-
   }
 
 
@@ -893,13 +894,11 @@ function stopSpeaking() {
 
 
   stopScientistAnimation();
-
 }
 
-
-// ==================================================
-// CLEAN TEXT FOR SPEECH
-// ==================================================
+// ======================================================
+// CLEAN TEXT
+// ======================================================
 
 function cleanTextForSpeech(text) {
 
@@ -909,68 +908,23 @@ function cleanTextForSpeech(text) {
 
 
   return String(text)
-
-    // Remove code blocks
-    .replace(
-      /```[\s\S]*?```/g,
-      ""
-    )
-
-    // Remove inline code
-    .replace(
-      /`([^`]+)`/g,
-      "$1"
-    )
-
-    // Remove markdown headings
-    .replace(
-      /^#{1,6}\s*/gm,
-      ""
-    )
-
-    // Remove bold
-    .replace(
-      /\*\*([^*]+)\*\*/g,
-      "$1"
-    )
-
-    // Remove italic
-    .replace(
-      /\*([^*]+)\*/g,
-      "$1"
-    )
-
-    // Remove markdown links
-    .replace(
-      /\[([^\]]+)\]\([^)]+\)/g,
-      "$1"
-    )
-
-    // Replace new lines with pauses
-    .replace(
-      /\n+/g,
-      ". "
-    )
-
-    // Remove excessive spaces
-    .replace(
-      /\s+/g,
-      " "
-    )
-
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/\n+/g, ". ")
+    .replace(/\s+/g, " ")
     .trim();
-
 }
 
-
-// ==================================================
+// ======================================================
 // ADD CHAT MESSAGE
-// ==================================================
+// ======================================================
 
-function appendChatMessage(
-  sender,
-  text
-) {
+function appendChatMessage(sender, text) {
 
   const messages =
     document.getElementById(
@@ -985,14 +939,11 @@ function appendChatMessage(
     );
 
     return null;
-
   }
 
 
   const msg =
-    document.createElement(
-      "div"
-    );
+    document.createElement("div");
 
 
   const id =
@@ -1001,21 +952,17 @@ function appendChatMessage(
       .slice(2, 7)}`;
 
 
-  msg.id =
-    id;
+  msg.id = id;
 
 
   msg.className =
     `chat-msg chat-msg--${sender}`;
 
 
-  msg.textContent =
-    text;
+  msg.textContent = text;
 
 
-  messages.appendChild(
-    msg
-  );
+  messages.appendChild(msg);
 
 
   messages.scrollTop =
@@ -1023,18 +970,13 @@ function appendChatMessage(
 
 
   return id;
-
 }
 
-
-// ==================================================
+// ======================================================
 // UPDATE CHAT MESSAGE
-// ==================================================
+// ======================================================
 
-function updateChatMessage(
-  id,
-  text
-) {
+function updateChatMessage(id, text) {
 
   if (!id) {
     return;
@@ -1042,9 +984,7 @@ function updateChatMessage(
 
 
   const el =
-    document.getElementById(
-      id
-    );
+    document.getElementById(id);
 
 
   if (!el) {
@@ -1052,8 +992,7 @@ function updateChatMessage(
   }
 
 
-  el.textContent =
-    text;
+  el.textContent = text;
 
 
   const messages =
@@ -1066,26 +1005,27 @@ function updateChatMessage(
 
     messages.scrollTop =
       messages.scrollHeight;
-
   }
-
 }
 
-
-// ==================================================
+// ======================================================
 // LOAD VOICES
-// ==================================================
+// ======================================================
 
-if (
-  "speechSynthesis" in window
-) {
+if ("speechSynthesis" in window) {
 
   window.speechSynthesis.onvoiceschanged =
     () => {
-
       window.speechSynthesis.getVoices();
-
     };
-
 }
+
+// ======================================================
+// IMPORTANT
+// DO NOT AUTO-INIT HERE.
+//
+// app.js already calls initChat().
+// Having another DOMContentLoaded listener here
+// was causing duplicate chat event listeners.
+// ======================================================
 ````

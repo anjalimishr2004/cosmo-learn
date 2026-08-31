@@ -1,12 +1,13 @@
 ﻿"use strict";
 
 async function fetchScienceTopic(topicName) {
-  const response = await fetch("/api/topic", {
+  const response = await fetch("/api/gemini", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
+      type: "topic",
       topic: topicName
     })
   });
@@ -36,12 +37,13 @@ async function askScientist(
   conversationHistory,
   question
 ) {
-  const response = await fetch("/api/chat", {
+  const response = await fetch("/api/gemini", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
+      type: "chat",
       topicTitle: topicContext?.title || "Science",
       topicSummary: topicContext?.summary || "",
       question: question,

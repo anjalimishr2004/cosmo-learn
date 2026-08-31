@@ -23,41 +23,65 @@ async function askGemini(contents, generationConfig = {}) {
     throw new Error("GEMINI_API_KEY is missing in .env");
   }
 
-  const model = "gemini-3.5-flash-lite";
+  const models = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-lite"
+  ];
 
-  const url =
-    "https://generativelanguage.googleapis.com/v1beta/models/" +
-    model +
-    ":generateContent?key=" +
-    apiKey;
+  let lastError = null;
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      contents: contents,
-      generationConfig: generationConfig
-    })
-  });
+  for (const model of models) {
+    try {
+      console.log("Trying Gemini model:", model);
 
-  const data = await response.json();
+      const url =
+        "https://generativelanguage.googleapis.com/v1beta/models/" +
+        model +
+        ":generateContent?key=" +
+        apiKey;
 
-  if (!response.ok) {
-    console.error("Gemini error:", data);
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: contents,
+          generationConfig: generationConfig
+        })
+      });
 
-    throw new Error(
-      data.error?.message || "Gemini API error"
-    );
+      const data = await response.json();
+
+      if (response.ok) {
+        const text =
+          data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        return text || "No response generated.";
+      }
+
+      console.error("Gemini model failed:", model, data);
+
+      lastError = new Error(
+        data.error?.message || "Gemini API error"
+      );
+
+      if (
+        response.status !== 429 &&
+        response.status !== 500 &&
+        response.status !== 503
+      ) {
+        throw lastError;
+      }
+    } catch (error) {
+      console.error("Gemini request failed:", model, error);
+      lastError = error;
+    }
   }
 
-  const text =
-    data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  return text || "No response generated.";
+  throw lastError || new Error("All Gemini models failed.");
 }
-
 // ==================================================
 // TOPIC API
 // ==================================================
@@ -296,4 +320,5 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
 

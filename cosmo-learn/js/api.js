@@ -42,15 +42,15 @@ async function askScientist(
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      type: "chat",
-      topicTitle: topicContext?.title || "Science",
-      topicSummary: topicContext?.summary || "",
-      question: question,
-      conversationHistory: Array.isArray(conversationHistory)
-        ? conversationHistory
-        : []
-    })
+  body: JSON.stringify({
+  type: "chat",
+  topicTitle: topicContext?.title || "Science",
+  topicSummary: topicContext?.summary || "",
+  question: question,
+  conversationHistory: Array.isArray(conversationHistory)
+    ? conversationHistory
+    : []
+})
   });
 
   const data = await response.json().catch(() => ({}));

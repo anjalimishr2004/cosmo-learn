@@ -366,9 +366,12 @@ function initChat() {
 // SCIENTIST MOUTH ANIMATION
 // ======================================================
 
- {
-  const avatar = getScientistImage();
+ // ======================================================
+// SCIENTIST MOUTH ANIMATION
+// ======================================================
 
+function startScientistAnimation() {
+  const avatar = getScientistImage();
   if (!avatar) return;
 
   stopMouthAnimation();

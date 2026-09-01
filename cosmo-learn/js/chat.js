@@ -588,17 +588,19 @@ function speakText(text) {
     utterance;
 
  utterance.onstart = () => {
-  console.log("VOICE STARTED — STARTING LIPS");
-
   if (
     window.cosmoLearnChatState.currentSpeech ===
     utterance
   ) {
     startScientistAnimation();
+
+    if (!window.cosmoLearnChatState.mouthAnimationTimer) {
+      startScientistAnimation();
+    }
   }
 };
 
-  utterance.onend = () => {
+utterance.onend = () => {
     if (
       window.cosmoLearnChatState.currentSpeech ===
       utterance
@@ -764,6 +766,7 @@ window.testScientistLips = function () {
 
   speakText(testText);
 };
+
 
 
 

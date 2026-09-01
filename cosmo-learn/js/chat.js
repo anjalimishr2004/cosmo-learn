@@ -750,6 +750,17 @@ window.testScientistLips = function () {
 
   speakText(testText);
 };
+window.addEventListener("beforeunload", () => {
+  stopSpeaking();
+  stopScientistAnimation();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopSpeaking();
+    stopScientistAnimation();
+  }
+});
 
 
 

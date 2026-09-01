@@ -582,25 +582,19 @@ function speakText(text) {
     utterance
   ) {
     startScientistAnimation();
-
-    if (!window.cosmoLearnChatState.mouthAnimationTimer) {
-      startScientistAnimation();
-    }
   }
 };
 
 utterance.onend = () => {
-    if (
-      window.cosmoLearnChatState.currentSpeech ===
-      utterance
-    ) {
-      window.cosmoLearnChatState.currentSpeech =
-        null;
-    }
+  if (
+    window.cosmoLearnChatState.currentSpeech ===
+    utterance
+  ) {
+    window.cosmoLearnChatState.currentSpeech = null;
+  }
 
-    stopScientistAnimation();
-  };
-
+  stopScientistAnimation();
+};
   utterance.onerror = (event) => {
     console.warn(
       "Speech synthesis error:",
@@ -755,6 +749,8 @@ window.testScientistLips = function () {
 
   speakText(testText);
 };
+
+
 
 
 

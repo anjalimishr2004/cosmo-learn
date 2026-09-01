@@ -366,7 +366,7 @@ function initChat() {
 // SCIENTIST MOUTH ANIMATION
 // ======================================================
 
-function startScientistAnimation() {
+ {
   const avatar = getScientistImage();
 
   if (!avatar) return;
@@ -749,6 +749,8 @@ window.testScientistLips = function () {
 
   speakText(testText);
 };
+
+
 
 
 

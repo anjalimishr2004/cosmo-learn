@@ -380,44 +380,33 @@ function startScientistAnimation() {
   function animateMouth() {
     if (stopped) return;
 
-    // Small natural pauses
-    if (Math.random() < 0.25) {
+    const open = Math.random() > 0.30;
+
+    if (open) {
+      setScientistOpen();
+    } else {
       setScientistClosed();
-
-      timeoutId = setTimeout(
-        animateMouth,
-        120 + Math.random() * 140
-      );
-
-      return;
     }
 
-    // Open briefly
-    setScientistOpen();
+    timeoutId = setTimeout(
+      animateMouth,
+      open
+        ? 60 + Math.random() * 90
+        : 100 + Math.random() * 140
+    );
+  }
 
-    timeoutId = setTimeout(() => {
-      if (stopped) return;
+  window.cosmoLearnChatState.mouthAnimationTimer = {
+    cancel: () => {
+      stopped = true;
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
 
       setScientistClosed();
-
-      timeoutId = setTimeout(
-        animateMouth,
-        90 + Math.random() * 100
-      );
-    }, 70 + Math.random() * 80);
-
-    window.cosmoLearnChatState.mouthAnimationTimer = {
-      cancel: () => {
-        stopped = true;
-
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-
-        setScientistClosed();
-      }
-    };
-  }
+    }
+  };
 
   animateMouth();
 }

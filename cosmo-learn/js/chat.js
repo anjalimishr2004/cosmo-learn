@@ -578,12 +578,7 @@ function speakText(text) {
     utterance;
 
  utterance.onstart = () => {
-  if (
-    window.cosmoLearnChatState.currentSpeech ===
-    utterance
-  ) {
-    startScientistAnimation();
-  }
+  startScientistAnimation();
 };
 
 utterance.onend = () => {
@@ -761,6 +756,9 @@ document.addEventListener("visibilitychange", () => {
     stopScientistAnimation();
   }
 });
+
+
+
 
 
 
